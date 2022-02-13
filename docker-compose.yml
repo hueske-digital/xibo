@@ -1,0 +1,79 @@
+version: "3.5"
+
+services:
+    db:
+        image: mysql:5.7
+        volumes:
+          - db_data:/var/lib/mysql
+        environment:
+          - MYSQL_DATABASE=xibo
+          - MYSQL_USER=xibo
+          - MYSQL_PASSWORD=xibo
+        restart: unless-stopped
+        networks:
+          default:
+
+    xmr:
+        image: xibosignage/xibo-xmr:latest
+        restart: unless-stopped
+        networks:
+          proxy_apps:
+          default:
+
+    app:
+        image: xibosignage/xibo-cms:latest
+        volumes:
+          - app_custom:/var/www/cms/custom
+          - app_backup:/var/www/backup
+          - app_theme:/var/www/cms/web/theme/custom
+          - app_library:/var/www/cms/library
+          - app_userscripts:/var/www/cms/web/userscripts
+          - app_ca_certs:/var/www/cms/ca-certs
+        restart: unless-stopped
+        environment:
+          - MYSQL_DATABASE=xibo
+          - MYSQL_USER=xibo
+          - MYSQL_PASSWORD=xibo
+          - MYSQL_HOST=db
+          - CMS_SMTP_SERVER
+          - CMS_SMTP_USERNAME
+          - CMS_SMTP_PASSWORD
+          - CMS_SMTP_USE_TLS
+          - CMS_SMTP_USE_STARTTLS
+          - CMS_SMTP_FROM
+          - CMS_SERVER_NAME
+          - CMS_USE_MEMCACHED=true
+          - CMS_QUICK_CHART_URL=http://quickchart:3400
+        networks:
+          proxy_apps:
+          default:
+        depends_on:
+          - db
+          - xmr
+          - memcached
+          - quickchart
+    memcached:
+        image: memcached:alpine
+        command: memcached -m 15
+        restart: unless-stopped
+        networks:
+          default:
+    quickchart:
+      image: ianw/quickchart
+      restart: unless-stopped
+      networks:
+        default:
+
+volumes:
+  db_data:
+  app_custom:
+  app_backup:
+  app_theme:
+  app_library:
+  app_userscripts:
+  app_ca_certs:
+
+networks:
+  proxy_apps:
+    name: proxy_apps
+    external: true
