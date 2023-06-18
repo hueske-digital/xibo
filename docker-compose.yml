@@ -14,14 +14,14 @@ services:
           default:
 
     xmr:
-        image: xibosignage/xibo-xmr:latest
+        image: ghcr.io/xibosignage/xibo-xmr:latest
         restart: unless-stopped
         networks:
           proxy_apps:
           default:
 
     app:
-        image: xibosignage/xibo-cms:latest
+        image: ghcr.io/xibosignage/xibo-cms:latest
         volumes:
           - app_custom:/var/www/cms/custom
           - app_backup:/var/www/backup
